@@ -1,7 +1,5 @@
 package com.example.newsapp.ui.theme.screen
 
-
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,9 +12,11 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,18 +24,19 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.newsapp.MockData
 import com.example.newsapp.MockData.getTimeAgo
-import com.example.newsapp.ui.theme.NewsData
 import com.example.newsapp.R
+import com.example.newsapp.network.models.TopNewsArticle
+import com.skydoves.landscapist.coil.CoilImage
 
-//Todo 4: create navController variable
+/**Todo 13: replace newsData with topNewsArticle and also replace the element values with data from it
+ * Replace Image with CoilImage
+ * For each Text we use elvis operator ?: to set the the value if its not null else set Not Available
+ */
 @Composable
-fun DetailScreen(newsData: NewsData, scrollState: ScrollState,navController: NavController) {
-    //Todo 1: Add a scaffold, reference topBar with empty block and move the Column into its block
+fun DetailScreen(article: TopNewsArticle, scrollState: ScrollState,navController: NavController) {
     Scaffold(topBar = {
-        //Todo 3: pass in detailTopApp as the value for topBar
-        //Todo 5: call popBacStack on navController to go back to the previous screen
         DetailTopAppBar(onBackPressed = {navController.popBackStack()})
-    }) {it
+    }) { it
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -44,25 +45,28 @@ fun DetailScreen(newsData: NewsData, scrollState: ScrollState,navController: Nav
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Image(painter = painterResource(id = newsData.image), contentDescription = "")
+            CoilImage(
+                imageModel = article.urlToImage,
+                // Crop, Fit, Inside, FillHeight, FillWidth, None
+                contentScale = ContentScale.Crop,
+                error = ImageBitmap.imageResource(R.drawable.news_sample1),
+                // shows a placeholder ImageBitmap when loading.
+                placeHolder = ImageBitmap.imageResource(R.drawable.news_sample1)
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp), horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                InfoWithIcon(Icons.Default.Edit, info = newsData.author)
-                //Todo 10: format publishedAt to show timeAgo
-                InfoWithIcon(icon = Icons.Default.DateRange, info = MockData.stringToDate(newsData.publishedAt).getTimeAgo())
+                InfoWithIcon(Icons.Default.Edit, info = article.author?:"Not Available")
+                InfoWithIcon(icon = Icons.Default.DateRange, info = MockData.stringToDate(article.publishedAt!!).getTimeAgo())
             }
-            Text(text = newsData.title, fontWeight = FontWeight.Bold)
-            Text(text = newsData.description, modifier = Modifier.padding(top = 16.dp))
+            Text(text = article.title?:"Not Available", fontWeight = FontWeight.Bold)
+            Text(text = article.description?:"Not Available", modifier = Modifier.padding(top = 16.dp))
         }
     }
 }
 
-/** Todo 2: create composable for the detail top bar with TopAppBar
- * containing a title and the navigationIcon
- */
 @Composable
 fun DetailTopAppBar(onBackPressed: () -> Unit = {}) {
     TopAppBar(title = { Text(text = "Detail Screen", fontWeight = FontWeight.SemiBold) },
@@ -88,13 +92,12 @@ fun InfoWithIcon(icon: ImageVector, info: String) {
     }
 }
 
-//Todo 6: provide value for nav controller
+//Todo 14: replace the preview data with TopNewsArticle
 @Preview(showBackground = true)
 @Composable
 fun DetailScreenPreview() {
     DetailScreen(
-        NewsData(
-            2,
+        TopNewsArticle(
             author = "Namita Singh",
             title = "Cleo Smith news — live: Kidnap suspect 'in hospital again' as 'hard police grind' credited for breakthrough - The Independent",
             description = "The suspected kidnapper of four-year-old Cleo Smith has been treated in hospital for a second time amid reports he was “attacked” while in custody.",
